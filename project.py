@@ -31,6 +31,9 @@ def check(sentence, words):
 	res = [any([k in s for k in words]) for s in sentence]
 	return [sentence[i] for i in range(len(res)) if res[i]]
 
-f = open(sentences_file.txt, 'x', encoding="utf-8")
-with open(sentences_file.txt, 'w',  encoding="utf-8") as f:
-    f.write(check(sentence=sentence_list, words=word_list))
+result_list = check(sentence=sentence_list, words=word_list)
+
+f = open('sentences_file.txt', 'x', encoding="utf-8")
+with open('sentences_file.txt', 'w',  encoding="utf-8") as f:
+    for n in result_list:
+         f.write(n + "\n")
