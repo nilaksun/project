@@ -2,6 +2,7 @@ import nltk
 from nltk.tokenize import sent_tokenize,word_tokenize
 import os
 import argparse
+import re
 
 sentence_list = []
 word_list = []
@@ -27,13 +28,40 @@ with open(args.word_list_file_name, 'r', encoding="utf-8") as f:
     for words in word_tokenize(vocab_content):
         word_list.append(words)
 
-def check(sentence, words):
-	res = [any([k in s for k in words]) for s in sentence]
-	return [sentence[i] for i in range(len(res)) if res[i]]
+def check(sentences, words):
+	res = [any([k in s for k in words]) for s in sentences]
+	return [sentences[i] for i in range(len(res)) if res[i]]
 
-result_list = check(sentence=sentence_list, words=word_list)
+def list_sentences_with_words(sentences, words):
+    result = []
+    for sentence in sentences:
+        clean_sentence = re.sub(r'[^\w\s]', '', sentence.replace('\n', ' ')).strip()
+        words_found = [word for word in words if any(word == token for token in clean_sentence.split())]
+        if words_found:
+            result.append((clean_sentence, words_found))
+    return result
 
-f = open('sentences_file.txt', 'x', encoding="utf-8")
-with open('sentences_file.txt', 'w',  encoding="utf-8") as f:
-    for n in result_list:
-         f.write(n + "\n")
+result_list = list_sentences_with_words(sentences=sentence_list, words=word_list)
+try:
+    f = open('sentences_file.txt', 'x', encoding="utf-8")
+except FileExistsError:
+    print("File already exists")
+
+with open('sentences_file.txt', 'w', encoding='utf-8') as f:
+    for item in result_list:
+        line = str(item) + '\n'
+        f.write(line)
+
+
+import firebase_admin
+from firebase_admin import db 
+import json
+
+
+cred_obj = firebase_admin.credentials.Certificate('project.py')
+default_app = firebase_admin.initialize_app(cred_obj, {'databaseURL': 'https://console.firebase.google.com/project/nil03project/database/nil03project-default-rtdb/data'})
+
+ref = db.reference("/")
+with open("nil03project.json", "r") as f:
+	file_contents = json.load(f)
+ref.set(file_contents)
